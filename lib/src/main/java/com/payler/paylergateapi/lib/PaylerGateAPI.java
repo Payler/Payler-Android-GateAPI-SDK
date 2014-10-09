@@ -3,7 +3,7 @@ package com.payler.paylergateapi.lib;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.payler.paylergateapi.lib.model.response.ChargeResponse;
+import com.payler.paylergateapi.lib.model.response.MoneyResponse;
 import com.payler.paylergateapi.lib.model.response.RetrieveResponse;
 import com.payler.paylergateapi.lib.model.response.SessionResponse;
 import com.payler.paylergateapi.lib.model.response.StatusResponse;
@@ -42,7 +42,7 @@ public class PaylerGateAPI {
         return null;
     }
 
-    public ChargeResponse charge(String password, String orderId, long amount) {
+    public MoneyResponse charge(String password, String orderId, long amount) {
         return null;
     }
 
@@ -50,13 +50,15 @@ public class PaylerGateAPI {
         return null;
     }
 
-    public ChargeResponse refund(String password, String orderId, long amount) {
+    public MoneyResponse refund(String password, String orderId, long amount) {
         return null;
     }
 
     public void pay(String sessionId, String redirectUrl, WebView webView) {
-        
+
     }
+
+    private void executeRequest()
 
     class PayWebViewClient extends WebViewClient {
 

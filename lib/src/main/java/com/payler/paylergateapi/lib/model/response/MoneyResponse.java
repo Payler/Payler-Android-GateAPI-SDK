@@ -1,6 +1,6 @@
 package com.payler.paylergateapi.lib.model.response;
 
-public class ChargeResponse {
+public class MoneyResponse {
 
     String order_id;
 

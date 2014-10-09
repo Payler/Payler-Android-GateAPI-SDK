@@ -7,7 +7,7 @@ android {
     defaultConfig {
         applicationId "com.payler.paylergateapi.lib"
         minSdkVersion 14
-        targetSdkVersion 20
+        targetSdkVersion 19
         versionCode 1
         versionName "1.0"
     }
@@ -17,8 +17,24 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'LICENSE.txt'
+        exclude 'META-INF/ASL2.0'
+    }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    // JSON parsing
+    compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+
+    // Volley http networking
+    compile 'com.mcxiaoke.volley:library:1.0.+'
+
 }
