@@ -1,6 +1,6 @@
 package com.payler.paylergateapi.lib.model.response;
 
-public class StatusResponse {
+public class StatusResponse extends Response {
 
     String order_id;
 

@@ -29,12 +29,7 @@ android {
 }
 
 dependencies {
+    compile 'com.google.guava:guava:16.0.+'
+    compile 'com.google.code.gson:gson:2.2.+'
     compile fileTree(dir: 'libs', include: ['*.jar'])
-
-    // JSON parsing
-    compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
-
-    // Volley http networking
-    compile 'com.mcxiaoke.volley:library:1.0.+'
-
 }

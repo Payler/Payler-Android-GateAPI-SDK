@@ -3,10 +3,15 @@ package com.payler.paylergateapi.lib;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.payler.paylergateapi.lib.model.PaylerGateException;
+import com.payler.paylergateapi.lib.model.request.SessionRequest;
+import com.payler.paylergateapi.lib.model.response.GateError;
 import com.payler.paylergateapi.lib.model.response.MoneyResponse;
+import com.payler.paylergateapi.lib.model.response.Response;
 import com.payler.paylergateapi.lib.model.response.RetrieveResponse;
 import com.payler.paylergateapi.lib.model.response.SessionResponse;
 import com.payler.paylergateapi.lib.model.response.StatusResponse;
+import com.payler.paylergateapi.lib.network.RequestExecutor;
 
 public class PaylerGateAPI {
 
@@ -27,15 +32,23 @@ public class PaylerGateAPI {
 
     private String mMerchantKey;
     private String mServerUrl;
+    private RequestExecutor mExecutor;
 
     public PaylerGateAPI(String merchantKey, String serverUrl) {
         mMerchantKey = merchantKey;
         mServerUrl = serverUrl;
+        mExecutor = new RequestExecutor();
     }
 
     public SessionResponse startSession(SessionType type, String orderId, long amount, String product,
-                             float total, String template, String lang, boolean recurrent) {
-        return null;
+                             float total, String template, String lang, boolean recurrent)
+            throws PaylerGateException {
+        Response response = mExecutor.executeRequest(mServerUrl + START_SESSION_URL, new SessionRequest(), SessionResponse.class);
+        if (response instanceof GateError) {
+            GateError error = (GateError) response;
+            throw new PaylerGateException(error.getCode(), error.getMessage());
+        }
+        return (SessionResponse) response;
     }
 
     public StatusResponse getStatus(String orderId) {
@@ -57,8 +70,6 @@ public class PaylerGateAPI {
     public void pay(String sessionId, String redirectUrl, WebView webView) {
 
     }
-
-    private void executeRequest()
 
     class PayWebViewClient extends WebViewClient {
 
