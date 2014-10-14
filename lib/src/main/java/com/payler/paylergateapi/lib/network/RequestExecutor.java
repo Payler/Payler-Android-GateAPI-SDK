@@ -1,10 +1,7 @@
 package com.payler.paylergateapi.lib.network;
 
 import com.google.common.base.CaseFormat;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
+import com.payler.paylergateapi.lib.model.ConnectionException;
 import com.payler.paylergateapi.lib.model.request.GateRequest;
 import com.payler.paylergateapi.lib.model.response.GateError;
 import com.payler.paylergateapi.lib.model.response.Response;
@@ -18,6 +15,12 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.PropertyNamingStrategy;
+import org.codehaus.jackson.map.exc.UnrecognizedPropertyException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,8 +35,23 @@ public class RequestExecutor {
 
     private HttpClient mClient;
     private List<NameValuePair> mParams;
+    private ObjectMapper mObjectMapper;
 
-    public Response executeRequest(String url, GateRequest request, Class <? extends Response> cls) {
+    public RequestExecutor() {
+        mObjectMapper = new ObjectMapper();
+        mObjectMapper.setPropertyNamingStrategy(new PropertyNamingStrategy
+                .LowerCaseWithUnderscoresStrategy());
+        mObjectMapper.setVisibilityChecker(mObjectMapper.getSerializationConfig()
+                .getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
+        mObjectMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+    }
+    
+    public Response executeRequest(String url, GateRequest request, Class <? extends Response> cls)
+            throws ConnectionException {
 
         if (mClient == null) {
             mClient = HttpClientFactory.createPinnedHttpClient();
@@ -44,6 +62,8 @@ public class RequestExecutor {
         post.setHeader("Accept", "application/json");
 
         mParams = getParams(request);
+
+        Response response = null;
 
         try {
             post.setEntity(new UrlEncodedFormEntity(mParams));
@@ -57,7 +77,7 @@ public class RequestExecutor {
                 throw new ClientProtocolException("Response contains no content");
             }
 
-            Response response = generateResponse(entity, cls);
+            response = generateResponse(entity, cls);
 
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -65,16 +85,17 @@ public class RequestExecutor {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+            throw new ConnectionException();
         }
 
-        return null;
+        return response;
     }
 
     private Response generateResponse(HttpEntity entity, Class<? extends Response> cls)
-            throws IOException, JsonSyntaxException {
+            throws IOException {
         InputStream dataStream = entity.getContent();
         if (dataStream == null) {
-            throw new JsonSyntaxException("Input stream can't be null");
+            throw new JsonMappingException("Input stream can't be null");
         }
 
         BufferedReader rd = new BufferedReader(new InputStreamReader(dataStream));
@@ -83,14 +104,13 @@ public class RequestExecutor {
         while ((line = rd.readLine()) != null) {
             builder.append(line);
         }
-        Gson gson = new GsonBuilder()
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+
         String content = builder.toString();
         Response response;
         try {
-            response = gson.fromJson(content, cls);
-        } catch (JsonSyntaxException e) {
-            response = gson.fromJson(content, GateError.class);
+            response = mObjectMapper.readValue(content, cls);
+        } catch (UnrecognizedPropertyException e) {
+            response = mObjectMapper.readValue(content, GateError.class);
         }
 //        validateResponse(response);
         return response;

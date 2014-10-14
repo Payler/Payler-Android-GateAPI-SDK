@@ -3,6 +3,7 @@ package com.payler.paylergateapi.lib;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.payler.paylergateapi.lib.model.ConnectionException;
 import com.payler.paylergateapi.lib.model.PaylerGateException;
 import com.payler.paylergateapi.lib.model.request.SessionRequest;
 import com.payler.paylergateapi.lib.model.response.GateError;
@@ -15,9 +16,19 @@ import com.payler.paylergateapi.lib.network.RequestExecutor;
 
 public class PaylerGateAPI {
 
-    enum SessionType {
-        ONE_STEP,
-        TWO_STEP
+    public enum SessionType {
+        ONE_STEP(1),
+        TWO_STEP(2);
+
+        private final int value;
+
+        SessionType(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
     }
 
     public static final String LANG_EN = "en";
@@ -42,11 +53,22 @@ public class PaylerGateAPI {
 
     public SessionResponse startSession(SessionType type, String orderId, long amount, String product,
                              float total, String template, String lang, boolean recurrent)
-            throws PaylerGateException {
-        Response response = mExecutor.executeRequest(mServerUrl + START_SESSION_URL, new SessionRequest(), SessionResponse.class);
+            throws PaylerGateException, ConnectionException {
+        SessionRequest request = new SessionRequest();
+        request/*.setKey(mMerchantKey)*/
+                .setType(type.getValue())
+                .setOrderId(orderId)
+                .setAmount(amount)
+                .setProduct(product)
+                .setTotal(total)
+                .setTemplate(template)
+                .setLang(lang)
+                .setRecurrent(recurrent);
+        Response response = mExecutor.executeRequest(mServerUrl + START_SESSION_URL, request,
+                SessionResponse.class);
         if (response instanceof GateError) {
-            GateError error = (GateError) response;
-            throw new PaylerGateException(error.getCode(), error.getMessage());
+            GateError gateError = (GateError) response;
+            throw new PaylerGateException(gateError.getCode(), gateError.getMessage());
         }
         return (SessionResponse) response;
     }

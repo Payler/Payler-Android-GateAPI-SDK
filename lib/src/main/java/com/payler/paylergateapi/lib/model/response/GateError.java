@@ -2,15 +2,20 @@ package com.payler.paylergateapi.lib.model.response;
 
 public class GateError extends Response {
 
-    private Integer code;
-
-    private String message;
+    private Error error;
 
     public Integer getCode() {
-        return code;
+        return error.code;
     }
 
     public String getMessage() {
-        return message;
+        return error.message;
     }
+
+    public static class Error {
+        private Integer code;
+
+        private String message;
+    }
+
 }

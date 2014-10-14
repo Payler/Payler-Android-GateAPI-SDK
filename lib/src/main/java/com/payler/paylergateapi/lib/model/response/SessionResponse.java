@@ -2,10 +2,13 @@ package com.payler.paylergateapi.lib.model.response;
 
 public class SessionResponse extends Response {
 
-    String session_id;
+    private String sessionId;
 
-    String order_id;
+    private String orderId;
 
-    long amount;
+    private Long amount;
 
+    public String getSessionId() {
+        return sessionId;
+    }
 }
