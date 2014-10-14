@@ -8,6 +8,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -20,10 +22,13 @@ import com.payler.paylergateapi.lib.model.response.SessionResponse;
 public class PayFragment extends Fragment {
 
     private PaylerGateAPI paylerGateAPI;
+    private String mSessionId;
+    private String mOrderId;
 
     private OnFragmentInteractionListener mListener;
     private Button sendButton;
     private ProgressBar progressBar;
+    private WebView webView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -45,6 +50,16 @@ public class PayFragment extends Fragment {
         progressBar.setVisibility(View.GONE);
         Log.i("", "Started");
 
+        webView = (WebView) v.findViewById(R.id.web_view);
+
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                webView.setVisibility(View.VISIBLE);
+            }
+        });
+
         sendButton = (Button) v.findViewById(R.id.send);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,7 +72,8 @@ public class PayFragment extends Fragment {
     }
 
     private String getMockOrderId() {
-        return "oid" + String.valueOf(System.currentTimeMillis());
+        mOrderId = "oid" + String.valueOf(System.currentTimeMillis());
+        return mOrderId;
     }
 
     private void startSession() {
@@ -91,12 +107,18 @@ public class PayFragment extends Fragment {
             protected void onPostExecute(SessionResponse sessionResponse) {
                 super.onPostExecute(sessionResponse);
                 if (sessionResponse != null) {
-                    Toast.makeText(getActivity(), sessionResponse.getSessionId(), Toast.LENGTH_LONG).show();
+                    mSessionId = sessionResponse.getSessionId();
+//                    Toast.makeText(getActivity(), mSessionId, Toast.LENGTH_LONG).show();
                     Log.d("GATE_SESSION", sessionResponse.getSessionId());
+                    startPayment();
                 }
                 progressBar.setVisibility(View.GONE);
             }
         }.execute();
+    }
+
+    private void startPayment() {
+        paylerGateAPI.pay(mSessionId, "http://www.google.ru", webView);
     }
 
     /**

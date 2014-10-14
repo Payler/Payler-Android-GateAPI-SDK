@@ -14,6 +14,8 @@ import com.payler.paylergateapi.lib.model.response.SessionResponse;
 import com.payler.paylergateapi.lib.model.response.StatusResponse;
 import com.payler.paylergateapi.lib.network.RequestExecutor;
 
+import org.apache.http.util.EncodingUtils;
+
 public class PaylerGateAPI {
 
     public enum SessionType {
@@ -90,7 +92,8 @@ public class PaylerGateAPI {
     }
 
     public void pay(String sessionId, String redirectUrl, WebView webView) {
-
+        byte post[] = EncodingUtils.getBytes("session_id=" + sessionId, "BASE64");
+        webView.postUrl(mServerUrl + PAY_URL, post);
     }
 
     class PayWebViewClient extends WebViewClient {
