@@ -55,7 +55,7 @@ public class PaylerGateAPI {
                              float total, String template, String lang, boolean recurrent)
             throws PaylerGateException, ConnectionException {
         SessionRequest request = new SessionRequest();
-        request/*.setKey(mMerchantKey)*/
+        request.setKey(mMerchantKey)
                 .setType(type.getValue())
                 .setOrderId(orderId)
                 .setAmount(amount)
