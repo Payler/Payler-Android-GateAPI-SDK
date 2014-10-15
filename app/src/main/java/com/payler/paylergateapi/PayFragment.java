@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -18,6 +17,7 @@ import com.payler.paylergateapi.lib.PaylerGateAPI;
 import com.payler.paylergateapi.lib.model.ConnectionException;
 import com.payler.paylergateapi.lib.model.PaylerGateException;
 import com.payler.paylergateapi.lib.model.response.SessionResponse;
+import com.payler.paylergateapi.lib.utils.OnCompleteListener;
 
 public class PayFragment extends Fragment {
 
@@ -51,14 +51,16 @@ public class PayFragment extends Fragment {
         Log.i("", "Started");
 
         webView = (WebView) v.findViewById(R.id.web_view);
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
 
-        webView.setWebViewClient(new WebViewClient() {
+        /*webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 webView.setVisibility(View.VISIBLE);
             }
-        });
+        });*/
 
         sendButton = (Button) v.findViewById(R.id.send);
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -118,7 +120,28 @@ public class PayFragment extends Fragment {
     }
 
     private void startPayment() {
-        paylerGateAPI.pay(mSessionId, "http://www.google.ru", webView);
+        paylerGateAPI.pay(mSessionId, Credentials.TEST_REDIRECT_URL, webView, true,
+                new OnCompleteListener() {
+            @Override
+            public void onSuccess() {
+                webView.setVisibility(View.GONE);
+                checkPaymentStatus();
+            }
+
+            @Override
+            public void onError(Exception e) {
+
+            }
+        });
+    }
+
+    private void checkPaymentStatus() {
+        // check payment status here
+        /*ProgressDialog dialog =  new ProgressDialog(getActivity());
+        dialog.setTitle(R.string.app_name);
+        dialog.setMessage(getResources().getString(R.string.check_payment));
+        dialog.show();*/
+
     }
 
     /**

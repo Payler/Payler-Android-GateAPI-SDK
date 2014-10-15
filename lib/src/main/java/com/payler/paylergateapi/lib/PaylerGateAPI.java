@@ -13,6 +13,7 @@ import com.payler.paylergateapi.lib.model.response.RetrieveResponse;
 import com.payler.paylergateapi.lib.model.response.SessionResponse;
 import com.payler.paylergateapi.lib.model.response.StatusResponse;
 import com.payler.paylergateapi.lib.network.RequestExecutor;
+import com.payler.paylergateapi.lib.utils.OnCompleteListener;
 
 import org.apache.http.util.EncodingUtils;
 
@@ -91,17 +92,19 @@ public class PaylerGateAPI {
         return null;
     }
 
-    public void pay(String sessionId, String redirectUrl, WebView webView) {
+    public void pay(String sessionId, final String redirectUrl, WebView webView,
+                    boolean showRedirectPage, final OnCompleteListener listener) {
         byte post[] = EncodingUtils.getBytes("session_id=" + sessionId, "BASE64");
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (url.startsWith(redirectUrl)) {
+                    listener.onSuccess();
+                }
+                return false;
+            }
+        });
         webView.postUrl(mServerUrl + PAY_URL, post);
-    }
-
-    class PayWebViewClient extends WebViewClient {
-
-        @Override
-        public void onPageFinished(WebView view, String url) {
-            super.onPageFinished(view, url);
-        }
     }
 
 }
