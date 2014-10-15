@@ -2,12 +2,15 @@ package com.payler.paylergateapi.lib.model.response;
 
 public class StatusResponse extends Response {
 
-    String order_id;
+    private String order_id;
 
-    long amount;
+    private Long amount;
 
-    String status;
+    private String status;
 
-    String recurrent_template_id;
+    private String recurrentTemplateId;
 
+    public String getStatus() {
+        return status;
+    }
 }

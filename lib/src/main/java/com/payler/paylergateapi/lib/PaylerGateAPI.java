@@ -6,6 +6,7 @@ import android.webkit.WebViewClient;
 import com.payler.paylergateapi.lib.model.ConnectionException;
 import com.payler.paylergateapi.lib.model.PaylerGateException;
 import com.payler.paylergateapi.lib.model.request.SessionRequest;
+import com.payler.paylergateapi.lib.model.request.StatusRequest;
 import com.payler.paylergateapi.lib.model.response.GateError;
 import com.payler.paylergateapi.lib.model.response.MoneyResponse;
 import com.payler.paylergateapi.lib.model.response.Response;
@@ -59,14 +60,14 @@ public class PaylerGateAPI {
             throws PaylerGateException, ConnectionException {
         SessionRequest request = new SessionRequest();
         request.setKey(mMerchantKey)
-                .setType(type.getValue())
-                .setOrderId(orderId)
-                .setAmount(amount)
-                .setProduct(product)
-                .setTotal(total)
-                .setTemplate(template)
-                .setLang(lang)
-                .setRecurrent(recurrent);
+               .setType(type.getValue())
+               .setOrderId(orderId)
+               .setAmount(amount)
+               .setProduct(product)
+               .setTotal(total)
+               .setTemplate(template)
+               .setLang(lang)
+               .setRecurrent(recurrent);
         Response response = mExecutor.executeRequest(mServerUrl + START_SESSION_URL, request,
                 SessionResponse.class);
         if (response instanceof GateError) {
@@ -76,8 +77,17 @@ public class PaylerGateAPI {
         return (SessionResponse) response;
     }
 
-    public StatusResponse getStatus(String orderId) {
-        return null;
+    public StatusResponse getStatus(String orderId) throws ConnectionException, PaylerGateException {
+        StatusRequest request = new StatusRequest();
+        request.setKey(mMerchantKey)
+               .setOrderId(orderId);
+        Response response = mExecutor.executeRequest(mServerUrl + GET_STATUS_URL, request,
+                StatusResponse.class);
+        if (response instanceof GateError) {
+            GateError gateError = (GateError) response;
+            throw new PaylerGateException(gateError.getCode(), gateError.getMessage());
+        }
+        return (StatusResponse) response;
     }
 
     public MoneyResponse charge(String password, String orderId, long amount) {
@@ -93,7 +103,7 @@ public class PaylerGateAPI {
     }
 
     public void pay(String sessionId, final String redirectUrl, WebView webView,
-                    boolean showRedirectPage, final OnCompleteListener listener) {
+                    final boolean showRedirectPage, final OnCompleteListener listener) {
         byte post[] = EncodingUtils.getBytes("session_id=" + sessionId, "BASE64");
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -102,6 +112,14 @@ public class PaylerGateAPI {
                     listener.onSuccess();
                 }
                 return false;
+            }
+
+            @Override
+            public void onLoadResource(WebView view, String url) {
+                if ((!showRedirectPage) && (url.startsWith(redirectUrl))) {
+                    return;
+                }
+                super.onLoadResource(view, url);
             }
         });
         webView.postUrl(mServerUrl + PAY_URL, post);

@@ -1,6 +1,7 @@
 package com.payler.paylergateapi;
 
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import com.payler.paylergateapi.lib.PaylerGateAPI;
 import com.payler.paylergateapi.lib.model.ConnectionException;
 import com.payler.paylergateapi.lib.model.PaylerGateException;
 import com.payler.paylergateapi.lib.model.response.SessionResponse;
+import com.payler.paylergateapi.lib.model.response.StatusResponse;
 import com.payler.paylergateapi.lib.utils.OnCompleteListener;
 
 public class PayFragment extends Fragment {
@@ -29,6 +31,7 @@ public class PayFragment extends Fragment {
     private Button sendButton;
     private ProgressBar progressBar;
     private WebView webView;
+    private ProgressDialog progressDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -54,13 +57,7 @@ public class PayFragment extends Fragment {
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
 
-        /*webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                webView.setVisibility(View.VISIBLE);
-            }
-        });*/
+        progressDialog = new ProgressDialog(getActivity());
 
         sendButton = (Button) v.findViewById(R.id.send);
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -120,11 +117,11 @@ public class PayFragment extends Fragment {
     }
 
     private void startPayment() {
-        paylerGateAPI.pay(mSessionId, Credentials.TEST_REDIRECT_URL, webView, true,
+        paylerGateAPI.pay(mSessionId, Credentials.TEST_REDIRECT_URL, webView, false,
                 new OnCompleteListener() {
             @Override
             public void onSuccess() {
-                webView.setVisibility(View.GONE);
+//                webView.setVisibility(View.GONE);
                 checkPaymentStatus();
             }
 
@@ -137,10 +134,46 @@ public class PayFragment extends Fragment {
 
     private void checkPaymentStatus() {
         // check payment status here
-        /*ProgressDialog dialog =  new ProgressDialog(getActivity());
-        dialog.setTitle(R.string.app_name);
-        dialog.setMessage(getResources().getString(R.string.check_payment));
-        dialog.show();*/
+        progressDialog.setTitle(R.string.app_name);
+        progressDialog.setMessage(getResources().getString(R.string.check_payment));
+        progressDialog.show();
+
+        new AsyncTask<Void, Void, StatusResponse>() {
+
+            @Override
+            protected StatusResponse doInBackground(Void... voids) {
+
+                try {
+                    return paylerGateAPI.getStatus(mOrderId);
+                } catch (final ConnectionException e) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } catch (final PaylerGateException e) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
+                            Log.d("API", String.valueOf(e.getCode()) + ": " + e.getMessage());
+                        }
+                    });
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(StatusResponse statusResponse) {
+                super.onPostExecute(statusResponse);
+                if (statusResponse != null) {
+                    Toast.makeText(getActivity(), "Status received", Toast.LENGTH_LONG).show();
+                    Log.d("GATE_SESSION", statusResponse.getStatus());
+                }
+                progressDialog.dismiss();
+            }
+        }.execute();
 
     }
 
