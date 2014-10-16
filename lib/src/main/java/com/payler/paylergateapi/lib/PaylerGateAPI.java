@@ -1,5 +1,6 @@
 package com.payler.paylergateapi.lib;
 
+import android.graphics.Bitmap;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -115,11 +116,11 @@ public class PaylerGateAPI {
             }
 
             @Override
-            public void onLoadResource(WebView view, String url) {
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 if ((!showRedirectPage) && (url.startsWith(redirectUrl))) {
                     return;
                 }
-                super.onLoadResource(view, url);
+                super.onPageStarted(view, url, favicon);
             }
         });
         webView.postUrl(mServerUrl + PAY_URL, post);
