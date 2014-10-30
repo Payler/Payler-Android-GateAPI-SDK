@@ -1,5 +1,6 @@
 package com.payler.paylergateapi;
 
+import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.net.Uri;
@@ -45,6 +46,7 @@ public class PayFragment extends Fragment {
         return fragment;
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.f_pay, container, false);
