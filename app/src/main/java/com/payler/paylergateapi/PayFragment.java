@@ -2,7 +2,6 @@ package com.payler.paylergateapi;
 
 import android.annotation.SuppressLint;
 import android.app.Fragment;
-import android.app.ProgressDialog;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,11 +12,13 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.payler.paylergateapi.lib.PaylerGateAPI;
 import com.payler.paylergateapi.lib.model.ConnectionException;
 import com.payler.paylergateapi.lib.model.PaylerGateException;
+import com.payler.paylergateapi.lib.model.TransactionStatus;
 import com.payler.paylergateapi.lib.model.response.SessionResponse;
 import com.payler.paylergateapi.lib.model.response.StatusResponse;
 import com.payler.paylergateapi.lib.utils.OnCompleteListener;
@@ -32,7 +33,7 @@ public class PayFragment extends Fragment {
     private Button sendButton;
     private ProgressBar progressBar;
     private WebView webView;
-    private ProgressDialog progressDialog;
+    private TextView statusText;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,7 +60,7 @@ public class PayFragment extends Fragment {
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
 
-        progressDialog = new ProgressDialog(getActivity());
+        statusText = (TextView) v.findViewById(R.id.status_text);
 
         sendButton = (Button) v.findViewById(R.id.send);
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -79,6 +80,7 @@ public class PayFragment extends Fragment {
 
     private void startSession() {
         progressBar.setVisibility(View.VISIBLE);
+        statusText.setText(R.string.load_webform);
         new AsyncTask<Void, Void, SessionResponse>() {
             @Override
             protected SessionResponse doInBackground(Void... voids) {
@@ -109,11 +111,11 @@ public class PayFragment extends Fragment {
                 super.onPostExecute(sessionResponse);
                 if (sessionResponse != null) {
                     mSessionId = sessionResponse.getSessionId();
-//                    Toast.makeText(getActivity(), mSessionId, Toast.LENGTH_LONG).show();
                     Log.d("GATE_SESSION", sessionResponse.getSessionId());
                     startPayment();
                 }
                 progressBar.setVisibility(View.GONE);
+                webView.setVisibility(View.VISIBLE);
             }
         }.execute();
     }
@@ -123,7 +125,8 @@ public class PayFragment extends Fragment {
                 new OnCompleteListener() {
             @Override
             public void onSuccess() {
-//                webView.setVisibility(View.GONE);
+                webView.setVisibility(View.INVISIBLE);
+                progressBar.setVisibility(View.INVISIBLE);
                 checkPaymentStatus();
             }
 
@@ -135,10 +138,10 @@ public class PayFragment extends Fragment {
     }
 
     private void checkPaymentStatus() {
-        // check payment status here
-        progressDialog.setTitle(R.string.app_name);
-        progressDialog.setMessage(getResources().getString(R.string.check_payment));
-        progressDialog.show();
+
+        statusText.setText(R.string.check_payment);
+        statusText.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
 
         new AsyncTask<Void, Void, StatusResponse>() {
 
@@ -170,10 +173,16 @@ public class PayFragment extends Fragment {
             protected void onPostExecute(StatusResponse statusResponse) {
                 super.onPostExecute(statusResponse);
                 if (statusResponse != null) {
-                    Toast.makeText(getActivity(), "Status received", Toast.LENGTH_LONG).show();
+                    if (statusResponse.getStatus().equals(TransactionStatus.CHARGED)) {
+                        statusText.setText(R.string.payment_ok);
+                    } else {
+                        statusText.setText(R.string.payment_error);
+                    }
                     Log.d("GATE_SESSION", statusResponse.getStatus());
+                } else {
+                    statusText.setText(R.string.status_not_received);
                 }
-                progressDialog.dismiss();
+                progressBar.setVisibility(View.INVISIBLE);
             }
         }.execute();
 
