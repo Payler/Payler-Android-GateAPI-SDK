@@ -5,7 +5,9 @@ import android.webkit.WebViewClient;
 
 import com.payler.paylergateapi.lib.model.ConnectionException;
 import com.payler.paylergateapi.lib.model.PaylerGateException;
+import com.payler.paylergateapi.lib.model.request.ChargeRequest;
 import com.payler.paylergateapi.lib.model.request.RefundRequest;
+import com.payler.paylergateapi.lib.model.request.RetrieveRequest;
 import com.payler.paylergateapi.lib.model.request.SessionRequest;
 import com.payler.paylergateapi.lib.model.request.StatusRequest;
 import com.payler.paylergateapi.lib.model.response.GateError;
@@ -91,11 +93,35 @@ public class PaylerGateAPI {
         return (StatusResponse) response;
     }
 
-    public MoneyResponse charge(String password, String orderId, long amount) {
-        return null;
+    public MoneyResponse charge(String password, String orderId, long amount)
+            throws ConnectionException, PaylerGateException {
+        ChargeRequest request = new ChargeRequest();
+        request.setKey(mMerchantKey)
+               .setPassword(password)
+               .setOrderId(orderId)
+               .setAmount(amount);
+        Response response = mExecutor.executeRequest(mServerUrl + CHARGE_URL, request,
+                MoneyResponse.class);
+        if (response instanceof GateError) {
+            GateError gateError = (GateError) response;
+            throw new PaylerGateException(gateError.getCode(), gateError.getMessage());
+        }
+        return (MoneyResponse) response;
     }
 
-    public RetrieveResponse retrieve(String password, String orderId, long amount) {
+    public RetrieveResponse retrieve(String password, String orderId, long amount)
+            throws ConnectionException, PaylerGateException {
+        RetrieveRequest request = new RetrieveRequest();
+        request.setKey(mMerchantKey)
+               .setPassword(password)
+               .setOrderId(orderId)
+               .setAmount(amount);
+        Response response = mExecutor.executeRequest(mServerUrl + RETRIEVE_URL, request,
+                RetrieveResponse.class);
+        if (response instanceof GateError) {
+            GateError gateError = (GateError) response;
+            throw new PaylerGateException(gateError.getCode(), gateError.getMessage());
+        }
         return null;
     }
 
