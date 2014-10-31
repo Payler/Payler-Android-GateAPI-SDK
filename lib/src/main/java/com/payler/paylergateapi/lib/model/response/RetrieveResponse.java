@@ -2,8 +2,15 @@ package com.payler.paylergateapi.lib.model.response;
 
 public class RetrieveResponse extends Response {
 
-    String order_id;
+    String orderId;
 
-    long new_amount;
+    long newAmount;
 
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public long getNewAmount() {
+        return newAmount;
+    }
 }

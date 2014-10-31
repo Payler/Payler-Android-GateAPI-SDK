@@ -5,6 +5,7 @@ import android.webkit.WebViewClient;
 
 import com.payler.paylergateapi.lib.model.ConnectionException;
 import com.payler.paylergateapi.lib.model.PaylerGateException;
+import com.payler.paylergateapi.lib.model.request.RefundRequest;
 import com.payler.paylergateapi.lib.model.request.SessionRequest;
 import com.payler.paylergateapi.lib.model.request.StatusRequest;
 import com.payler.paylergateapi.lib.model.response.GateError;
@@ -98,8 +99,20 @@ public class PaylerGateAPI {
         return null;
     }
 
-    public MoneyResponse refund(String password, String orderId, long amount) {
-        return null;
+    public MoneyResponse refund(String password, String orderId, long amount)
+            throws ConnectionException, PaylerGateException {
+        RefundRequest request = new RefundRequest();
+        request.setKey(mMerchantKey)
+               .setPassword(password)
+               .setOrderId(orderId)
+               .setAmount(amount);
+        Response response = mExecutor.executeRequest(mServerUrl + REFUND_URL, request,
+                MoneyResponse.class);
+        if (response instanceof GateError) {
+            GateError gateError = (GateError) response;
+            throw new PaylerGateException(gateError.getCode(), gateError.getMessage());
+        }
+        return (MoneyResponse) response;
     }
 
     public void pay(String sessionId, final String redirectUrl, WebView webView,

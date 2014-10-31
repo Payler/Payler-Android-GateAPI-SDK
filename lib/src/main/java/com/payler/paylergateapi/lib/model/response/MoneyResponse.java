@@ -2,8 +2,16 @@ package com.payler.paylergateapi.lib.model.response;
 
 public class MoneyResponse extends Response {
 
-    String order_id;
+    private String orderId;
 
-    long amount;
+    private Long amount;
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public Long getAmount() {
+        return amount;
+    }
 
 }

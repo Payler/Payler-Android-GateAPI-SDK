@@ -12,7 +12,8 @@ public class StatusRequest extends GateRequest {
         return this;
     }
 
-    public void setOrderId(String orderId) {
+    public StatusRequest setOrderId(String orderId) {
         this.orderId = orderId;
+        return this;
     }
 }

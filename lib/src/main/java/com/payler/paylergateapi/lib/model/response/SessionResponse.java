@@ -11,4 +11,12 @@ public class SessionResponse extends Response {
     public String getSessionId() {
         return sessionId;
     }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public Long getAmount() {
+        return amount;
+    }
 }

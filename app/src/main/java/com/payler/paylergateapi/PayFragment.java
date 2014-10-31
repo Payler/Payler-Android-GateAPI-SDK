@@ -19,6 +19,7 @@ import com.payler.paylergateapi.lib.PaylerGateAPI;
 import com.payler.paylergateapi.lib.model.ConnectionException;
 import com.payler.paylergateapi.lib.model.PaylerGateException;
 import com.payler.paylergateapi.lib.model.TransactionStatus;
+import com.payler.paylergateapi.lib.model.response.MoneyResponse;
 import com.payler.paylergateapi.lib.model.response.SessionResponse;
 import com.payler.paylergateapi.lib.model.response.StatusResponse;
 import com.payler.paylergateapi.lib.utils.OnCompleteListener;
@@ -34,6 +35,8 @@ public class PayFragment extends Fragment {
     private ProgressBar progressBar;
     private WebView webView;
     private TextView statusText;
+
+    private boolean mPaymentCharged = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -66,7 +69,11 @@ public class PayFragment extends Fragment {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startSession();
+                if (mPaymentCharged) {
+                    returnMoney();
+                } else {
+                    startSession();
+                }
             }
         });
 
@@ -175,6 +182,8 @@ public class PayFragment extends Fragment {
                 if (statusResponse != null) {
                     if (statusResponse.getStatus().equals(TransactionStatus.CHARGED)) {
                         statusText.setText(R.string.payment_ok);
+                        mPaymentCharged = true;
+                        sendButton.setText(R.string.refund_text);
                     } else {
                         statusText.setText(R.string.payment_error);
                     }
@@ -186,6 +195,51 @@ public class PayFragment extends Fragment {
             }
         }.execute();
 
+    }
+
+    private void returnMoney() {
+        statusText.setText(R.string.refund_progress);
+        progressBar.setVisibility(View.VISIBLE);
+
+        new AsyncTask<Void, Void, MoneyResponse>() {
+
+            @Override
+            protected MoneyResponse doInBackground(Void... params) {
+                try {
+                    return paylerGateAPI.refund(Credentials.TEST_MERCHANT_PASSWORD, mOrderId, 100);
+                } catch (final ConnectionException e) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } catch (final PaylerGateException e) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
+                            Log.d("API", String.valueOf(e.getCode()) + ": " + e.getMessage());
+                        }
+                    });
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(MoneyResponse moneyResponse) {
+                super.onPostExecute(moneyResponse);
+                if (moneyResponse != null) {
+                    float amount = moneyResponse.getAmount() / 100f;
+                    statusText.setText(String.format(getString(R.string.refunded_sum), amount));
+                } else {
+                    statusText.setText(R.string.refund_error);
+                }
+                mPaymentCharged = false;
+                sendButton.setText(R.string.onestep_payment);
+                progressBar.setVisibility(View.INVISIBLE);
+            }
+        }.execute();
     }
 
     /**
