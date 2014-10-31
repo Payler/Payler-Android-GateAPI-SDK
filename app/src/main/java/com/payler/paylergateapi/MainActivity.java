@@ -1,156 +1,229 @@
 package com.payler.paylergateapi;
 
-import android.app.ActionBar;
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.widget.DrawerLayout;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
+import android.webkit.WebView;
+import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.payler.paylergateapi.lib.PaylerGateAPI;
+import com.payler.paylergateapi.lib.model.ConnectionException;
+import com.payler.paylergateapi.lib.model.PaylerGateException;
+import com.payler.paylergateapi.lib.model.TransactionStatus;
+import com.payler.paylergateapi.lib.model.response.MoneyResponse;
+import com.payler.paylergateapi.lib.model.response.SessionResponse;
+import com.payler.paylergateapi.lib.model.response.StatusResponse;
+import com.payler.paylergateapi.lib.utils.OnCompleteListener;
 
 
-public class MainActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+public class MainActivity extends Activity {
 
-    /**
-     * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
-     */
-    private NavigationDrawerFragment mNavigationDrawerFragment;
+    private PaylerGateAPI paylerGateAPI;
+    private String mSessionId;
+    private String mOrderId;
 
-    /**
-     * Used to store the last screen title. For use in {@link #restoreActionBar()}.
-     */
-    private CharSequence mTitle;
+    private Button sendButton;
+    private ProgressBar progressBar;
+    private WebView webView;
+    private TextView statusText;
+
+    private boolean mPaymentCharged = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.a_main);
 
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
+        paylerGateAPI = new PaylerGateAPI(Credentials.TEST_MERCHANT_KEY, Credentials.TEST_SERVER_URL);
 
-        // Set up the drawer.
-        mNavigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.GONE);
+        Log.i("", "Started");
+
+        webView = (WebView) findViewById(R.id.web_view);
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+
+        statusText = (TextView) findViewById(R.id.status_text);
+
+        sendButton = (Button) findViewById(R.id.send);
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mPaymentCharged) {
+                    returnMoney();
+                } else {
+                    startSession();
+                }
+            }
+        });
     }
 
-    @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
-        Fragment fragment = null;
-        switch (position) {
-            case 0:
-                fragment = PayFragment.newInstance();
-                break;
-            default:
-                fragment = PlaceholderFragment.newInstance(position + 1);
-        }
-
-        setFragment(fragment);
+    private String getMockOrderId() {
+        mOrderId = "oid" + String.valueOf(System.currentTimeMillis());
+        return mOrderId;
     }
 
-    private void setFragment(Fragment fragment) {
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, fragment)
-                .commit();
+    private void startSession() {
+        progressBar.setVisibility(View.VISIBLE);
+        statusText.setText(R.string.load_webform);
+        new AsyncTask<Void, Void, SessionResponse>() {
+            @Override
+            protected SessionResponse doInBackground(Void... voids) {
+                try {
+                    return paylerGateAPI.startSession(PaylerGateAPI.SessionType.ONE_STEP, getMockOrderId(),
+                            1000, null, 0f, null, null, false);
+                } catch (final PaylerGateException e) {
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                            Log.d("API", String.valueOf(e.getCode()) + ": " + e.getMessage());
+                        }
+                    });
+                } catch (final ConnectionException e) {
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(SessionResponse sessionResponse) {
+                super.onPostExecute(sessionResponse);
+                if (sessionResponse != null) {
+                    mSessionId = sessionResponse.getSessionId();
+                    Log.d("GATE_SESSION", sessionResponse.getSessionId());
+                    startPayment();
+                }
+                progressBar.setVisibility(View.GONE);
+                webView.setVisibility(View.VISIBLE);
+            }
+        }.execute();
     }
 
-    public void onSectionAttached(int number) {
-        switch (number) {
-            case 1:
-                mTitle = getString(R.string.title_section1);
-                break;
-            case 2:
-                mTitle = getString(R.string.title_section2);
-                break;
-            case 3:
-                mTitle = getString(R.string.title_section3);
-                break;
-        }
+    private void startPayment() {
+        paylerGateAPI.pay(mSessionId, Credentials.TEST_REDIRECT_URL, webView, false,
+                new OnCompleteListener() {
+                    @Override
+                    public void onSuccess() {
+                        webView.setVisibility(View.INVISIBLE);
+                        progressBar.setVisibility(View.INVISIBLE);
+                        checkPaymentStatus();
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+
+                    }
+                });
     }
 
-    public void restoreActionBar() {
-        ActionBar actionBar = getActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setTitle(mTitle);
+    private void checkPaymentStatus() {
+
+        statusText.setText(R.string.check_payment);
+        statusText.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
+
+        new AsyncTask<Void, Void, StatusResponse>() {
+
+            @Override
+            protected StatusResponse doInBackground(Void... voids) {
+
+                try {
+                    return paylerGateAPI.getStatus(mOrderId);
+                } catch (final ConnectionException e) {
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } catch (final PaylerGateException e) {
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                            Log.d("API", String.valueOf(e.getCode()) + ": " + e.getMessage());
+                        }
+                    });
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(StatusResponse statusResponse) {
+                super.onPostExecute(statusResponse);
+                if (statusResponse != null) {
+                    if (statusResponse.getStatus().equals(TransactionStatus.CHARGED)) {
+                        statusText.setText(R.string.payment_ok);
+                        mPaymentCharged = true;
+                        sendButton.setText(R.string.refund_text);
+                    } else {
+                        statusText.setText(R.string.payment_error);
+                    }
+                    Log.d("GATE_SESSION", statusResponse.getStatus());
+                } else {
+                    statusText.setText(R.string.status_not_received);
+                }
+                progressBar.setVisibility(View.INVISIBLE);
+            }
+        }.execute();
+
     }
 
+    private void returnMoney() {
+        statusText.setText(R.string.refund_progress);
+        progressBar.setVisibility(View.VISIBLE);
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        if (!mNavigationDrawerFragment.isDrawerOpen()) {
-            // Only show items in the action bar relevant to this screen
-            // if the drawer is not showing. Otherwise, let the drawer
-            // decide what to show in the action bar.
-            getMenuInflater().inflate(R.menu.main, menu);
-            restoreActionBar();
-            return true;
-        }
-        return super.onCreateOptionsMenu(menu);
-    }
+        new AsyncTask<Void, Void, MoneyResponse>() {
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+            @Override
+            protected MoneyResponse doInBackground(Void... params) {
+                try {
+                    return paylerGateAPI.refund(Credentials.TEST_MERCHANT_PASSWORD, mOrderId, 100);
+                } catch (final ConnectionException e) {
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } catch (final PaylerGateException e) {
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                            Log.d("API", String.valueOf(e.getCode()) + ": " + e.getMessage());
+                        }
+                    });
+                }
+                return null;
+            }
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.f_main, container, false);
-            return rootView;
-        }
-
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            ((MainActivity) activity).onSectionAttached(
-                    getArguments().getInt(ARG_SECTION_NUMBER));
-        }
+            @Override
+            protected void onPostExecute(MoneyResponse moneyResponse) {
+                super.onPostExecute(moneyResponse);
+                if (moneyResponse != null) {
+                    float amount = moneyResponse.getAmount() / 100f;
+                    statusText.setText(String.format(getString(R.string.refunded_sum), amount));
+                } else {
+                    statusText.setText(R.string.refund_error);
+                }
+                mPaymentCharged = false;
+                sendButton.setText(R.string.onestep_payment);
+                progressBar.setVisibility(View.INVISIBLE);
+            }
+        }.execute();
     }
 
 }
