@@ -1,13 +1,29 @@
 package com.payler.paylergateapi.lib.model.response;
 
+/**
+ * Актуальный статус платежа.
+ */
 public class StatusResponse extends Response {
 
+    /**
+     * Идентификатор платежа в системе Продавца.
+     */
     private String orderId;
 
+    /**
+     * Сумма платежа в копейках.
+     */
     private Long amount;
 
+    /**
+     * Состояние платежа.  См. статусы транзакций.
+     */
     private String status;
 
+    /**
+     * Присутствует, если в рамках текущей транзакции был создан шаблон рекуррентных платежей или
+     * она была осуществлена по шаблону.
+     */
     private String recurrentTemplateId;
 
     public String getStatus() {

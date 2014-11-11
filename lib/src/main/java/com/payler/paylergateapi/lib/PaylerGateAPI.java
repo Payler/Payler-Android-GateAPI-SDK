@@ -21,8 +21,19 @@ import com.payler.paylergateapi.lib.utils.OnCompleteListener;
 
 import org.apache.http.util.EncodingUtils;
 
+/**
+ * Этот класс предоставляет доступ к Payler Gate API.
+ * Методы класса соответсвуют методам API.
+ */
 public class PaylerGateAPI {
 
+    /**
+     * Тип сессии - определяет количество стадий платежа.
+     *
+     * При выполнении одностадийного платежа происходит моментальное списание средств с
+     * карты покупателя.  При двухстадийном платеже сначала выполняется резервирование средств, а
+     * позже отдельной операцией их списание.
+     */
     public enum SessionType {
         ONE_STEP(1),
         TWO_STEP(2);
@@ -52,12 +63,33 @@ public class PaylerGateAPI {
     private String mServerUrl;
     private RequestExecutor mExecutor;
 
+    /**
+     * Конструктор
+     * @param merchantKey Идентификатор продавца.
+     * @param serverUrl Адрес платёжного шлюза (разные значения для тестовой и продакшен среды).
+     */
     public PaylerGateAPI(String merchantKey, String serverUrl) {
         mMerchantKey = merchantKey;
         mServerUrl = serverUrl;
         mExecutor = new RequestExecutor();
     }
 
+    /**
+     * Запрос инициализации платежа. Выполняется перед перенаправлением Пользователя на
+     * страницу платежного шлюза Payler.
+     *
+     * @param type Тип сессии. Определяет количество стадий платежа.
+     * @param orderId Идентификатор оплачиваемого заказа в системе Продавца. Для каждого платежа (сессии) требуется использовать уникальный идентификатор.
+     * @param amount Сумма платежа в копейках.
+     * @param product Наименование оплачиваемого продукта.
+     * @param total Количество оплачиваемых в заказе продуктов.
+     * @param template Шаблон страницы оплаты. При отсутствии используется шаблон по умолчанию.
+     * @param lang Указывает предпочитаемый язык ответов на запросы.
+     * @param recurrent Показывает, требуется ли создать шаблон рекуррентных платежей на основе текущего.
+     * @return Ответ на успешный запрос.
+     * @throws PaylerGateException
+     * @throws ConnectionException
+     */
     public SessionResponse startSession(SessionType type, String orderId, long amount, String product,
                              float total, String template, String lang, boolean recurrent)
             throws PaylerGateException, ConnectionException {
@@ -80,6 +112,13 @@ public class PaylerGateAPI {
         return (SessionResponse) response;
     }
 
+    /**
+     * Получить актуальный статус платежа.
+     * @param orderId Идентификатор заказа в системе Продавца.
+     * @return Параметры платежа в случае успешной обработки запроса.
+     * @throws ConnectionException
+     * @throws PaylerGateException
+     */
     public StatusResponse getStatus(String orderId) throws ConnectionException, PaylerGateException {
         StatusRequest request = new StatusRequest();
         request.setKey(mMerchantKey)
@@ -93,6 +132,15 @@ public class PaylerGateAPI {
         return (StatusResponse) response;
     }
 
+    /**
+     * Запрос на списание средств при двухстадийной схеме проведения платежа.
+     * @param password Платёжный пароль продаца.
+     * @param orderId Идентификатор заказа в системе Продавца.
+     * @param amount Сумма платежа в копейках.
+     * @return Результаты успешного запроса.
+     * @throws ConnectionException
+     * @throws PaylerGateException
+     */
     public MoneyResponse charge(String password, String orderId, long amount)
             throws ConnectionException, PaylerGateException {
         ChargeRequest request = new ChargeRequest();
@@ -109,6 +157,15 @@ public class PaylerGateAPI {
         return (MoneyResponse) response;
     }
 
+    /**
+     * Выполнить частичную или полную разблокировку средств.
+     * @param password Платёжный пароль продаца.
+     * @param orderId Идентификатор заказа в системе Продавца.
+     * @param amount Сумма для возврата в копейках.
+     * @return Результаты успешного запроса.
+     * @throws ConnectionException
+     * @throws PaylerGateException
+     */
     public RetrieveResponse retrieve(String password, String orderId, long amount)
             throws ConnectionException, PaylerGateException {
         RetrieveRequest request = new RetrieveRequest();
@@ -125,6 +182,15 @@ public class PaylerGateAPI {
         return null;
     }
 
+    /**
+     * Выполнить частичный или полный возврат средств покупателю.
+     * @param password Платёжный пароль продаца.
+     * @param orderId Идентификатор заказа в системе Продавца.
+     * @param amount Сумма для возврата в копейках.
+     * @return Результаты успешного запроса.
+     * @throws ConnectionException
+     * @throws PaylerGateException
+     */
     public MoneyResponse refund(String password, String orderId, long amount)
             throws ConnectionException, PaylerGateException {
         RefundRequest request = new RefundRequest();
@@ -141,6 +207,15 @@ public class PaylerGateAPI {
         return (MoneyResponse) response;
     }
 
+    /**
+     * Перенаправление пользователя на страницу ввода карточных данных с дальнейшей блокировкой или
+     * списание денежных средств.
+     * @param sessionId Идентификатор платежа в системе Пэйлер.
+     * @param redirectUrl Адрес сайта магазина, на который будет сделан редирект после успешного выполнения платежа.
+     * @param webView Ссылка на веб-вью в котором будет отображаться страница ввода карточных данных.
+     * @param showRedirectPage Следует ли показывать страницу магазина, на которую делается переход.
+     * @param listener Обработчик, который будет вызван по завершению процедуры оплаты. После завершения оплаты нужно обязательно проверить статус платежа.
+     */
     public void pay(String sessionId, final String redirectUrl, WebView webView,
                     final boolean showRedirectPage, final OnCompleteListener listener) {
         byte post[] = EncodingUtils.getBytes("session_id=" + sessionId, "BASE64");
