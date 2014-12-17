@@ -13,22 +13,38 @@ import javax.net.ssl.X509TrustManager;
 
 public class PubKeyManager implements X509TrustManager {
 
-    private static String PUB_KEY = "BC FF 1C 4E 45 4F 44 B6 B7 27 77 96 17 15 11 57 " +
-            "54 0B 9C CD 2A 72 90 DB 76 26 AC 63 97 F9 70 17 " +
-            "05 D3 1E 52 6C 6B 60 83 02 44 BE 3E BD 09 28 AA " +
-            "98 D5 4C 93 36 18 0D 1C C2 AC E0 8A C0 DE 00 4A " +
-            "3E 66 6D EC DA D9 D6 9D FB F1 22 00 93 E6 31 D7 " +
-            "30 73 81 40 BF 5A 12 64 9E 0F 66 E7 12 3A 31 04 " +
-            "FB 5D 18 05 4C F3 12 1F 35 71 10 04 F8 34 C3 99 " +
-            "69 9B 44 7C D2 18 C9 84 8C 43 D0 34 AC AB 33 FD " +
-            "2B 08 E2 98 98 EC 78 50 2B 08 20 54 65 E1 68 DF " +
-            "E7 67 E3 E2 EB CC A3 FE C8 50 A6 1A 4E 67 C8 27 " +
-            "F4 EB 3E B5 8F 35 DD EE A9 C6 F9 57 0F B1 AA 7B " +
-            "ED 4B CE 54 E8 97 6D 15 A9 3D 3B 04 88 4B 19 7A " +
-            "1E 68 BA B7 95 9F 2A CD 40 55 C6 41 3E 8F FE AA " +
-            "29 0E 1B F7 C4 8B 2D 8C 34 96 24 ED 57 62 E4 04 " +
-            "D2 5D D0 78 E8 99 18 47 44 98 5A 41 EA 27 64 E3 " +
-            "67 D0 7F D0 0F 2C D4 1E 16 3F 28 F6 F6 AD 6F E1";
+    private static String PUB_KEY = "c5 28 81 e5 c7 06 67 9f 17 33 ae 8f 73 e9 7b 09 " +
+            "26 1d 20 96 06 44 10 77 79 60 32 ff 8c d7 f9 2f " +
+            "c8 6f 94 84 fb 1b eb 43 ad 8e 0e 61 58 8b 2b cd " +
+            "24 6e 69 24 f7 f2 1a 4f e6 db c2 a2 8c 6a a3 ad " +
+            "19 e0 df 08 06 e0 2d aa 3c 69 10 03 ad 00 96 34 " +
+            "44 0d f1 ab 0f 96 59 79 8a 33 e3 29 e7 45 c0 bb " +
+            "94 01 c3 f9 23 9e 1a b3 00 4d 74 91 b9 84 10 42 " +
+            "66 ee cc 5f bd 37 a0 d3 bf eb 1d f8 53 61 3c 0b " +
+            "d8 4d 71 05 53 f4 b7 29 ff eb e7 9a 13 30 2c b6 " +
+            "8a 70 87 f0 76 ee 6b 05 0a c7 df 16 f3 96 54 83 " +
+            "e2 08 dd c9 5a be ba dd 30 db fc d0 e0 83 ba 51 " +
+            "e2 72 5f ea 40 03 51 4b 45 02 c0 cb cf 0b 97 89 " +
+            "89 d7 d3 32 ff b5 6e 76 0b ea 63 ae 4b 82 79 0d " +
+            "dd 64 ac 4b ea 7c 87 1d df 17 80 c0 a5 66 e6 3f " +
+            "b6 19 75 98 ba 10 22 f2 89 ee 2c 92 6c 68 88 e8 " +
+            "91 70 3a 9c 20 63 35 b2 1d ef 6b 95 96 f7 95 60 " +
+            "d6 06 91 c3 60 ae 70 cd 72 2b d9 4e ec 61 0b f4 " +
+            "f6 f9 51 77 f7 ae dc 0d 23 3d f7 d5 d7 d2 51 8d " +
+            "67 ec 40 40 a6 a7 4a 1a 22 69 6e 52 a5 d6 c5 29 " +
+            "03 0e 47 85 ee 91 98 ab 42 49 30 15 7c c9 22 94 " +
+            "03 f9 cb 19 13 52 4d 49 cd 64 7e c3 53 c6 ae 9a " +
+            "55 ff 98 b8 f7 ff 3c df f1 1e 46 24 7e e7 0d f0 " +
+            "2c cb 66 fd e9 0d 51 a2 bd 99 7e 8d 61 dd 37 99 " +
+            "e1 5c 33 5b c9 1c c8 e1 3e 64 36 99 a5 6a 0a 1f " +
+            "c6 bc 24 a6 e9 ea e4 7d 12 49 70 e9 94 e0 99 c3 " +
+            "17 5c 46 c7 76 b8 54 a1 3c 83 ce d5 44 21 d1 76 " +
+            "5b 40 2a c4 de a7 67 21 6e 95 fe 76 e1 e6 44 41 " +
+            "fe 86 9f 55 fa 8a 10 e1 03 1e aa 03 5d ec c8 e7 " +
+            "98 20 14 40 78 b7 bb 2e bf c0 f0 2f ad 07 9c cf " +
+            "e2 f7 de 7f 19 c5 b8 ad 20 d1 48 12 d3 45 3e 16 " +
+            "ff 97 96 ae a9 b9 2c 21 9f 57 5c 88 9a 6a 1f d3 " +
+            "a1 ac 2c 7c ac 5c 42 bb 63 18 c0 c6 bf bf 61 0b ";
 
     @Override
     public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
