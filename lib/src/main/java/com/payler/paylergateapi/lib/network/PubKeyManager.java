@@ -44,7 +44,7 @@ public class PubKeyManager implements X509TrustManager {
             "98 20 14 40 78 b7 bb 2e bf c0 f0 2f ad 07 9c cf " +
             "e2 f7 de 7f 19 c5 b8 ad 20 d1 48 12 d3 45 3e 16 " +
             "ff 97 96 ae a9 b9 2c 21 9f 57 5c 88 9a 6a 1f d3 " +
-            "a1 ac 2c 7c ac 5c 42 bb 63 18 c0 c6 bf bf 61 0b ";
+            "a1 ac 2c 7c ac 5c 42 bb 63 18 c0 c6 bf bf 61 0b";
 
     @Override
     public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {

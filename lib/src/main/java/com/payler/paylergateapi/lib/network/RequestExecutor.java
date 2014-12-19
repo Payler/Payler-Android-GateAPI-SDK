@@ -55,6 +55,7 @@ public class RequestExecutor {
 
         if (mClient == null) {
             mClient = HttpClientFactory.createPinnedHttpClient();
+//            mClient = HttpClientFactory.createHttpClient();
         }
 
         HttpPost post = new HttpPost(url);
