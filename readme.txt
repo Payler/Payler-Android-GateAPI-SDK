@@ -4,7 +4,7 @@ Payler GateAPI SDK
 Проект для Android Studio.
 
 1. Запустить Android Studio.
-2. Выбрать Open Project.
+2. Выбрать Open an Existing Android Studio Project.
 3. Выбрать каталог android-gateapi-sdk
 
 Каталог lib содержит непосредственно библиотеку.
@@ -23,3 +23,16 @@ https://drive.google.com/open?id=0B5A1Tl-BiPnSSk1aOWRWYjMyWWM.
 (merchant key) и для некоторых операций платёжный пароль.  Для получения этих
 данных, а также номеров тестовых карт, обратитесь, пожалуйста, в службу
 поддержки 24@payler.com
+
+
+История изменений
+-----------------
+
+v1.0.1:
+
+  1. Доработан SSL-pinning в связи с изменением SSL сертификата на сервере.
+  2. Обновлён список ошибок.
+
+v1.0:
+
+  Первая версия SDK.
