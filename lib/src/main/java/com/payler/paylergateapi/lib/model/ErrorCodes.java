@@ -1,5 +1,5 @@
 // Этот файл был сгенерирован автоматически.  Не меняйте его вручную.
-// Версия: 1.11
+// Версия: 1.15
 
 package com.payler.paylergateapi.lib.model;
 
@@ -24,7 +24,7 @@ public class ErrorCodes {
     /** Превышен лимит (достигнуты ограничительные условия по карте). */
     public static int LIMIT_EXCEEDED = 5;
 
-    /** Транзакция отклонена, так как носит подозрительный характер. Требуется связаться со службой поддержки. */
+    /** Транзакция отклонена, так как носит подозрительный характер. */
     public static int AF_DECLINED = 6;
 
     /** Операция не может быть выполнена, так как платеж находится в недопустимом состоянии. */
@@ -96,6 +96,12 @@ public class ErrorCodes {
     /** Активация шаблона рекуррентных платежей требует подтверждения со стороны банка. */
     public static int TEMPLATE_ACTIVATION_REQUIRES_BANK_CONF = 104;
 
+    /** Возвраты рекуррентных платежей не поддерживаются банком. */
+    public static int REFUND_OF_RECURRENT_NOT_SUPPORTED = 105;
+
+    /** Слишком частые рекуррентные платежи. */
+    public static int TOO_FREQUENT_RECURRENT_PAYMENTS = 106;
+
     /** Частичный возврат не поддерживается (невозможно вернуть покупателю часть ранее списанной суммы). */
     public static int PARTIAL_REFUND_NOT_ALLOWED = 200;
 
@@ -156,6 +162,9 @@ public class ErrorCodes {
     /** Превышено максимальное число попыток осуществления платежа. */
     public static int ATTEMPTS_NUMBER_EXCEEDED = 607;
 
+    /** Начата новая попытка оплаты, продолжение старой невозможно. */
+    public static int THERE_IS_NEWER_ATTEMPT = 608;
+
     /** Невозможно создать указанный шаблон ответа. */
     public static int TEMPLATE_NOT_FOUND = 700;
 
@@ -164,6 +173,9 @@ public class ErrorCodes {
 
     /** Терминал продавца с указанным платежным идентификатором не найден. */
     public static int TERMINAL_NOT_FOUND = 702;
+
+    /** Данная валюта не поддерживается. */
+    public static int CURRENCY_NOT_SUPPORTED = 703;
 
     /** 3-D Secure авторизация на стороне банка-эмитента карты отменена или ее выполнение невозможно из-за возникшей ошибки. */
     public static int THREE_DS_FAIL = 800;
@@ -174,6 +186,9 @@ public class ErrorCodes {
     /** Информация о предварительной обработке 3D Secure запроса не найдена. Требуется связаться со службой поддержки. */
     public static int PREPROCESS_3DS_INFO_NOT_FOUND = 802;
 
+    /** Требуется карта с поддержкой технологии 3-D Secure. */
+    public static int NOT_INVOLVED_IN_3DS = 803;
+
     /** Операция не разрешена продавцу (магазину). Требуется связаться со службой поддержки. */
     public static int OPERATION_NOT_ALLOWED_TO_MERCHANT = 900;
 
@@ -182,5 +197,14 @@ public class ErrorCodes {
 
     /** Сверка итогов завершилась с ошибкой. Требуется связаться со службой поддержки. */
     public static int RECONCILE_ERROR = 902;
+
+    /** Операция отклонена. Требуется связаться со службой поддержки. */
+    public static int DECLINED = 903;
+
+    /** Временная проблема. Попробуйте выполнить операцию позднее. */
+    public static int TEMPORARY_MALFUNCTION = 904;
+
+    /** Возврат для платежей через электронный кошелёк не поддерживается. */
+    public static int EMONEY_REFUND_NOT_SUPPORTED = 1000;
 
 }
