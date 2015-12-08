@@ -21,6 +21,11 @@ public class StatusResponse extends Response {
     private String status;
 
     /**
+     * Тип оплаты.
+     */
+    private String payment_type;
+
+    /**
      * Присутствует, если в рамках текущей транзакции был создан шаблон рекуррентных платежей или
      * она была осуществлена по шаблону.
      */
@@ -29,6 +34,8 @@ public class StatusResponse extends Response {
     public String getStatus() {
         return status;
     }
+
+    public String getPaymentType() { return status; }
 
     public String getOrderId() {
         return orderId;
