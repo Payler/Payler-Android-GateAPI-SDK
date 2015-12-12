@@ -3,14 +3,19 @@ package com.payler.paylergateapi.lib;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.google.common.base.Strings;
 import com.payler.paylergateapi.lib.model.ConnectionException;
+import com.payler.paylergateapi.lib.model.ErrorCodes;
 import com.payler.paylergateapi.lib.model.PaylerGateException;
 import com.payler.paylergateapi.lib.model.request.ChargeRequest;
+import com.payler.paylergateapi.lib.model.request.GetTemplateRequest;
 import com.payler.paylergateapi.lib.model.request.RefundRequest;
+import com.payler.paylergateapi.lib.model.request.RepeatPayRequest;
 import com.payler.paylergateapi.lib.model.request.RetrieveRequest;
 import com.payler.paylergateapi.lib.model.request.SessionRequest;
 import com.payler.paylergateapi.lib.model.request.StatusRequest;
 import com.payler.paylergateapi.lib.model.response.GateError;
+import com.payler.paylergateapi.lib.model.response.GetTemplateResponse;
 import com.payler.paylergateapi.lib.model.response.MoneyResponse;
 import com.payler.paylergateapi.lib.model.response.Response;
 import com.payler.paylergateapi.lib.model.response.RetrieveResponse;
@@ -58,6 +63,8 @@ public class PaylerGateAPI {
     private static final String RETRIEVE_URL = "/gapi/Retrieve";
     private static final String REFUND_URL = "/gapi/Refund";
     private static final String GET_STATUS_URL = "/gapi/GetStatus";
+    private static final String GET_TEMPLATE_URL = "gapi/GetTemplate";
+    private static final String REPEAT_PAY_URL = "gapi/RepeatPay";
 
     private String mMerchantKey;
     private String mServerUrl;
@@ -230,6 +237,53 @@ public class PaylerGateAPI {
             }
         });
         webView.postUrl(mServerUrl + PAY_URL, post);
+    }
+
+    /**
+     * Получение информации о шаблоне рекуррентных платежей
+     * @param recurrentTemplateId Идентификатор шаблона рекуррентных платежей
+     * @return Результаты успешного запроса
+     * @throws ConnectionException
+     * @throws PaylerGateException
+     */
+    public GetTemplateResponse getTemplate(String recurrentTemplateId) throws ConnectionException, PaylerGateException {
+        if (Strings.isNullOrEmpty(recurrentTemplateId)) {
+            throw new PaylerGateException(ErrorCodes.RECURRENT_TEMPLATE_NOT_FOUND, "Не указан идентификатор шаблона рекуррентного платежа");
+        }
+        GetTemplateRequest request = new GetTemplateRequest();
+        request.setKey(mMerchantKey)
+                .setRecurrentTemplateId(recurrentTemplateId);
+        Response response = mExecutor.executeRequest(mServerUrl + GET_TEMPLATE_URL, request,
+                GetTemplateResponse.class);
+        if (response instanceof GateError) {
+            GateError gateError = (GateError) response;
+            throw new PaylerGateException(gateError.getCode(), gateError.getMessage());
+        }
+        return (GetTemplateResponse) response;
+    }
+
+    /**
+     * @param orderId Идентификатор заказа в системе Продавца
+     * @param recurrentTemplateId Идентификатор шаблона рекуррентных платежей
+     * @param amount Сумма платежа в копейках
+     * @return Результаты успешного запроса
+     * @throws ConnectionException
+     * @throws PaylerGateException
+     */
+    public MoneyResponse repeatPay(String orderId, String recurrentTemplateId, long amount)
+            throws ConnectionException, PaylerGateException {
+        RepeatPayRequest request = new RepeatPayRequest();
+        request.setKey(mMerchantKey)
+                .setOrderId(orderId)
+                .setRecurrentTemplateId(recurrentTemplateId)
+                .setAmount(amount);
+        Response response = mExecutor.executeRequest(mServerUrl + REPEAT_PAY_URL, request,
+                MoneyResponse.class);
+        if (response instanceof GateError) {
+            GateError gateError = (GateError) response;
+            throw new PaylerGateException(gateError.getCode(), gateError.getMessage());
+        }
+        return (MoneyResponse) response;
     }
 
 }

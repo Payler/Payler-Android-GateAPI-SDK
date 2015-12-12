@@ -1,7 +1,7 @@
 package com.payler.paylergateapi.lib.model.response;
 
 /**
- * Успешный ответ на операции Charge, Refund
+ * Успешный ответ на операции Charge, Refund, RepeatPay
  */
 public class MoneyResponse extends Response {
 
