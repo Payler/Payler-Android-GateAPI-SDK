@@ -3,16 +3,23 @@
 
     <string name="app_name">PaylerGateApi Demo</string>
 
-    <string name="onestep_payment">Одностадийный платеж</string>
+    <string name="onestep_payment">Одностадийный\nплатеж</string>
+    <string name="recurrent_payment">Рекуррентный\nплатеж</string>
+    <string name="repeat">Повторить</string>
+    <string name="template_info">Инфо о шаблоне</string>
     <string name="refund_text">Возврат денег</string>
     <string name="check_payment">Проверка статуса заказа…</string>
     <string name="load_webform">Загрузка платежной формы…</string>
+    <string name="status_template_info">Получение информации о шаблоне…</string>
+    <string name="status_repeat_pay">Повторяем рекуррентный платеж…</string>
     <string name="refund_progress">Попытка возврата платежа…</string>
     <string name="prompt_pay">Нажмите кнопку для отправки запроса</string>
     <string name="payment_ok">Платеж выполнен успешно</string>
     <string name="payment_error">Платеж не выполнен</string>
     <string name="status_not_received">Статус платежа не получен</string>
-    <string name="refunded_sum">Остаток списанной суммы %s рублей</string>
+    <string name="refunded_sum">Остаток списанной суммы %s руб.</string>
+    <string name="paid_sum">Платеж выполнен на сумму %s руб.</string>
     <string name="refund_error">Не удалось вернуть деньги</string>
+    <string name="get_template_error">Не удалось вернуть информацию о шаблоне платежа</string>
 
 </resources>

@@ -63,8 +63,8 @@ public class PaylerGateAPI {
     private static final String RETRIEVE_URL = "/gapi/Retrieve";
     private static final String REFUND_URL = "/gapi/Refund";
     private static final String GET_STATUS_URL = "/gapi/GetStatus";
-    private static final String GET_TEMPLATE_URL = "gapi/GetTemplate";
-    private static final String REPEAT_PAY_URL = "gapi/RepeatPay";
+    private static final String GET_TEMPLATE_URL = "/gapi/GetTemplate";
+    private static final String REPEAT_PAY_URL = "/gapi/RepeatPay";
 
     private String mMerchantKey;
     private String mServerUrl;
