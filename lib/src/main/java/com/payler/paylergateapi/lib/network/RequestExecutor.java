@@ -29,12 +29,16 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RequestExecutor {
 
     private HttpClient mClient;
+
     private List<NameValuePair> mParams;
+
     private ObjectMapper mObjectMapper;
 
     public RequestExecutor() {
@@ -42,15 +46,15 @@ public class RequestExecutor {
         mObjectMapper.setPropertyNamingStrategy(new PropertyNamingStrategy
                 .LowerCaseWithUnderscoresStrategy());
         mObjectMapper.setVisibilityChecker(mObjectMapper.getSerializationConfig()
-                .getDefaultVisibilityChecker()
-                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
-                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
-                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
-                .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
+                                                   .getDefaultVisibilityChecker()
+                                                   .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                                                   .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                                                   .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                                                   .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
         mObjectMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, true);
     }
-    
-    public Response executeRequest(String url, GateRequest request, Class <? extends Response> cls)
+
+    public Response executeRequest(String url, GateRequest request, Class<? extends Response> cls)
             throws ConnectionException {
 
         if (mClient == null) {
@@ -125,8 +129,18 @@ public class RequestExecutor {
                 field.setAccessible(true);
                 Object value = field.get(request);
                 String fieldName = field.getName();
-
-                if (value != null) {
+                if ("java.util.HashMap".equals(field.getType().getName())) {
+                    HashMap<String, String> hashmapFieldValue = (HashMap<String, String>) value;
+                    for (final Map.Entry<String, String> customParamsMapEntry : hashmapFieldValue.entrySet()) {
+                        String currentName = customParamsMapEntry.getKey();
+                        String currentValue = customParamsMapEntry.getValue();
+                        if (currentName != null && currentValue != null) {
+                            currentName = "pay_page_param_" + currentName;
+                            currentName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, currentName);
+                            nameValuePairs.add(new BasicNameValuePair(currentName, currentValue));
+                        }
+                    }
+                } else if (value != null) {
                     fieldName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, fieldName);
                     nameValuePairs.add(new BasicNameValuePair(fieldName, value.toString()));
                 }
