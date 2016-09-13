@@ -207,7 +207,7 @@ public class PaylerGateAPI {
             GateError gateError = (GateError) response;
             throw new PaylerGateException(gateError.getCode(), gateError.getMessage());
         }
-        return null;
+        return (RetrieveResponse) response;
     }
 
     /**
