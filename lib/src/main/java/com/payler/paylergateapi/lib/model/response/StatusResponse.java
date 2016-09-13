@@ -31,10 +31,17 @@ public class StatusResponse extends Response {
      */
     private String recurrentTemplateId;
 
+    /**
+     * @return Состояние платежа.
+     * Cм. статусы транзакций.
+     */
     public String getStatus() {
         return status;
     }
 
+    /**
+     * @deprecated use {@link #getStatus()}
+     */
     public String getPaymentType() { return status; }
 
     public String getOrderId() {
