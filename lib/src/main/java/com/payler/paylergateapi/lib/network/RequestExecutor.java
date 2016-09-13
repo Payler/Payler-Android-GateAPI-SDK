@@ -3,6 +3,7 @@ package com.payler.paylergateapi.lib.network;
 import com.google.common.base.CaseFormat;
 import com.payler.paylergateapi.lib.model.ConnectionException;
 import com.payler.paylergateapi.lib.model.request.GateRequest;
+import com.payler.paylergateapi.lib.model.response.AdvancedStatusResponse;
 import com.payler.paylergateapi.lib.model.response.GateError;
 import com.payler.paylergateapi.lib.model.response.Response;
 
@@ -15,12 +16,18 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.Version;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.PropertyNamingStrategy;
+import org.codehaus.jackson.map.deser.std.StdDeserializer;
 import org.codehaus.jackson.map.exc.UnrecognizedPropertyException;
+import org.codehaus.jackson.map.module.SimpleModule;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,6 +37,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +60,11 @@ public class RequestExecutor {
                                                    .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
                                                    .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
         mObjectMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+
+        SimpleModule module = new SimpleModule("AdvancesStatusResponseDesealizer", Version.unknownVersion());
+        module.addDeserializer(AdvancedStatusResponse.UserEnteredParams.class, new UserEnteredParamsStdDeserializer());
+        mObjectMapper.registerModule(module);
+
     }
 
     public Response executeRequest(String url, GateRequest request, Class<? extends Response> cls)
@@ -152,4 +165,29 @@ public class RequestExecutor {
         return nameValuePairs;
     }
 
+    public static class UserEnteredParamsStdDeserializer
+            extends StdDeserializer<AdvancedStatusResponse.UserEnteredParams> {
+
+        public UserEnteredParamsStdDeserializer() {
+            super(AdvancedStatusResponse.UserEnteredParams.class);
+        }
+
+        @Override
+        public AdvancedStatusResponse.UserEnteredParams deserialize(
+                final JsonParser jp,
+                final DeserializationContext ctxt)
+
+                throws IOException {
+            AdvancedStatusResponse.UserEnteredParams result = new AdvancedStatusResponse.UserEnteredParams();
+
+            JsonNode jsonNode = jp.getCodec().readTree(jp);
+            Iterator<String> fieldNames = jsonNode.getFieldNames();
+            while (fieldNames.hasNext()) {
+                String name = fieldNames.next();
+                String value = jsonNode.get(name).getTextValue();
+                result.put(name, value);
+            }
+            return result;
+        }
+    }
 }

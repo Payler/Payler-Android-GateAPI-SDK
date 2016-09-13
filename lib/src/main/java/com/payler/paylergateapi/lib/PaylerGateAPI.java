@@ -17,6 +17,7 @@ import com.payler.paylergateapi.lib.model.request.RetrieveRequest;
 import com.payler.paylergateapi.lib.model.request.SessionRequest;
 import com.payler.paylergateapi.lib.model.request.StatusRequest;
 import com.payler.paylergateapi.lib.model.response.ActivateTemplateResponse;
+import com.payler.paylergateapi.lib.model.response.AdvancedStatusResponse;
 import com.payler.paylergateapi.lib.model.response.FindSessionResponse;
 import com.payler.paylergateapi.lib.model.response.GateError;
 import com.payler.paylergateapi.lib.model.response.GetTemplateResponse;
@@ -59,6 +60,8 @@ public class PaylerGateAPI {
     private static final String REPEAT_PAY_URL = "/gapi/RepeatPay";
 
     private static final String ACTIVATE_TEMPLATE_URL = "/gapi/ActivateTemplate";
+
+    private static final String GET_ADVANCED_STATUS_URL = "/gapi/GetAdvancedStatus";
 
     private String mMerchantKey;
 
@@ -160,6 +163,29 @@ public class PaylerGateAPI {
             throw new PaylerGateException(gateError.getCode(), gateError.getMessage());
         }
         return (StatusResponse) response;
+    }
+
+    /**
+     * Результатом выполнения запроса является получение расширенного статуса платежа. Рекомендуется использовать для
+     * получения детальной информации о транзакции в том случае, если ответа на запрос GetStatus ​недостаточно для
+     * решения бизнес­задач.
+     *
+     * @param orderId идентификатор заказа в системе Продавца.
+     * @throws ConnectionException
+     * @throws PaylerGateException
+     */
+    public AdvancedStatusResponse getAdvancedStatus(String orderId) throws ConnectionException, PaylerGateException {
+        StatusRequest request = new StatusRequest();
+        request.setKey(mMerchantKey)
+                .setOrderId(orderId);
+        Response response = mExecutor.executeRequest(mServerUrl + GET_ADVANCED_STATUS_URL,
+                                                     request,
+                                                     StatusResponse.class);
+        if (response instanceof GateError) {
+            GateError gateError = (GateError) response;
+            throw new PaylerGateException(gateError.getCode(), gateError.getMessage());
+        }
+        return (AdvancedStatusResponse) response;
     }
 
     /**
