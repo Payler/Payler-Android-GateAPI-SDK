@@ -7,6 +7,7 @@ import com.google.common.base.Strings;
 import com.payler.paylergateapi.lib.model.ConnectionException;
 import com.payler.paylergateapi.lib.model.ErrorCodes;
 import com.payler.paylergateapi.lib.model.PaylerGateException;
+import com.payler.paylergateapi.lib.model.request.ActivateTemplateRequest;
 import com.payler.paylergateapi.lib.model.request.ChargeRequest;
 import com.payler.paylergateapi.lib.model.request.FindSessionRequest;
 import com.payler.paylergateapi.lib.model.request.GetTemplateRequest;
@@ -15,6 +16,7 @@ import com.payler.paylergateapi.lib.model.request.RepeatPayRequest;
 import com.payler.paylergateapi.lib.model.request.RetrieveRequest;
 import com.payler.paylergateapi.lib.model.request.SessionRequest;
 import com.payler.paylergateapi.lib.model.request.StatusRequest;
+import com.payler.paylergateapi.lib.model.response.ActivateTemplateResponse;
 import com.payler.paylergateapi.lib.model.response.FindSessionResponse;
 import com.payler.paylergateapi.lib.model.response.GateError;
 import com.payler.paylergateapi.lib.model.response.GetTemplateResponse;
@@ -55,6 +57,8 @@ public class PaylerGateAPI {
     private static final String GET_TEMPLATE_URL = "/gapi/GetTemplate";
 
     private static final String REPEAT_PAY_URL = "/gapi/RepeatPay";
+
+    private static final String ACTIVATE_TEMPLATE_URL = "/gapi/ActivateTemplate";
 
     private String mMerchantKey;
 
@@ -287,6 +291,43 @@ public class PaylerGateAPI {
             throw new PaylerGateException(gateError.getCode(), gateError.getMessage());
         }
         return (GetTemplateResponse) response;
+    }
+
+    /**
+     * Запрос активации/деактивации шаблона рекуррентных платежей. Рекомендуется использовать для временного
+     * отключения возможности совершать платежи по шаблону.
+     *
+     * @param recurrentTemplateId идентификатор шаблона рекуррентных платежей. Должен соответствовать
+     *                            recurrent_template_id операции GetStatus​ или GetTemplate​
+     * @param active              показывает, требуется ли активировать или деактивировать шаблон рекуррентных
+     *                            платежей. true ​– шаблон требуется активировать; false шаблон требуется
+     *                            деактивировать.
+     * @return Результаты успешного запроса
+     * @throws PaylerGateException
+     * @throws ConnectionException
+     */
+    public ActivateTemplateResponse activateTemplate(String recurrentTemplateId, boolean active)
+            throws PaylerGateException, ConnectionException {
+        if (Strings.isNullOrEmpty(recurrentTemplateId)) {
+            throw new PaylerGateException(ErrorCodes.RECURRENT_TEMPLATE_NOT_FOUND, "Не указан идентификатор шаблона " +
+                    "рекуррентного платежа");
+        }
+
+        ActivateTemplateRequest request = new ActivateTemplateRequest();
+        request
+                .setKey(mMerchantKey)
+                .setRecurrentTemplateId(recurrentTemplateId)
+                .setActive(active);
+        Response response = mExecutor.executeRequest(mServerUrl + ACTIVATE_TEMPLATE_URL,
+                                                     request,
+                                                     ActivateTemplateResponse.class);
+        if (response instanceof GateError) {
+            GateError gateError = (GateError) response;
+            throw new PaylerGateException(gateError.getCode(), gateError.getMessage());
+        }
+        return (ActivateTemplateResponse) response;
+
+
     }
 
     /**
