@@ -17,7 +17,7 @@ Studio, выбрать Build -> Make Project, Run -> Run 'app'
 на сумму 10 рублей, а потом сделать частичный возврат на 1 рубль.
 
 Ознакомьтесь, пожалуйста, с документацией по Gate API
-https://drive.google.com/open?id=0B5A1Tl-BiPnSSk1aOWRWYjMyWWM.
+http://payler.com/download/docs/Описание%20Payler%20Gate%20API.pdf
 
 Для выполнения любой операции через API или SDK нужно иметь ключ доступа
 (merchant key) и для некоторых операций платёжный пароль.  Для получения этих
